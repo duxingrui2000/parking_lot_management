@@ -1,18 +1,44 @@
 package org.group3.parking.model;
 
-import org.springframework.data.annotation.Id;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 public class ParkingInfo {
     @Id
+    @GeneratedValue
     private Long parkingId;
+
+    @Column(nullable = false, length = 7)
     private String plateNumber;
+
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm", timezone = "GMT+8")
     private LocalDateTime enterTime;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm", timezone = "GMT+8")
     private LocalDateTime leaveTime;
-    private String id;
+
+    private BigDecimal amountPayable;
+
+    public BigDecimal getAmountPayable() {
+        return amountPayable;
+    }
+
+    public void setAmountPayable(BigDecimal amountPayable) {
+        this.amountPayable = amountPayable;
+    }
+
 
     public Long getParkingId() {
         return parkingId;
@@ -44,14 +70,5 @@ public class ParkingInfo {
 
     public void setLeaveTime(LocalDateTime leaveTime) {
         this.leaveTime = leaveTime;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    @javax.persistence.Id
-    public String getId() {
-        return id;
     }
 }
