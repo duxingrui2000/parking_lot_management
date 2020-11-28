@@ -1,7 +1,9 @@
 package org.group3.parking.controller;
 
 import org.group3.parking.model.ParkingInfo;
+import org.group3.parking.model.VipInfo;
 import org.group3.parking.service.ParkingInfoService;
+import org.group3.parking.service.VipInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,8 +19,8 @@ import java.util.List;
 public class AdminController {
     @Autowired
     ParkingInfoService parkingInfoService;
-//    @Autowired
-//    VipInfoService vipInfoService;
+    @Autowired
+    VipInfoService vipInfoService;
 
     @RequestMapping("/index")
     public String toLoginPage() {
@@ -39,9 +41,7 @@ public class AdminController {
     @GetMapping("/parking/info")
     public String toParkingInfoPage(Model msg) {
         List<ParkingInfo> parkingInfoList = parkingInfoService.getAllParkingInfo();
-        System.out.println(parkingInfoList.get(0).getEnterTime());
         msg.addAttribute("parkingInfoList", parkingInfoList);
-
         return "/admin/parking_info/parking_info";
     }
 
@@ -84,7 +84,7 @@ public class AdminController {
     }
 
     @GetMapping("parking/delete/{parking_id}")
-    public String deleteParkingInfo(@PathVariable Long parking_id){
+    public String deleteParkingInfo(@PathVariable Long parking_id) {
         try {
             this.parkingInfoService.deleteParkingInfo(parking_id);
         } catch (Exception e) {
@@ -94,5 +94,52 @@ public class AdminController {
         return "redirect:/admin/parking/info";
     }
 
+    @GetMapping("vip/info")
+    public String toVipInfoPage(Model msg) {
+        List<VipInfo> vipInfoList;
+        vipInfoList = this.vipInfoService.getAllVipInfo();
+        msg.addAttribute("vipInfoList", vipInfoList);
+        return "/admin/vip_info/vip_info";
+    }
+
+    @GetMapping("vip/add")
+    public String toVipAddPage(){
+        return "/admin/vip_info/add";
+    }
+
+    @PostMapping("vip/add")
+    public String addVipInfo(VipInfo vipInfo){
+        try {
+            this.vipInfoService.createVipInfo(vipInfo);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "404";
+        }
+        return "redirect:/admin/vip/info";
+    }
+
+    @GetMapping("vip/edit/{plateNumber}")
+    public String toVipEditPage(@PathVariable("plateNumber") String plateNumber,Model msg){
+        try {
+            VipInfo vipInfo = this.vipInfoService.getVipInfoByPlateNumber(plateNumber);
+            msg.addAttribute("vipInfo",vipInfo);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "404";
+        }
+        return "/admin/vip_info/edit";
+    }
+
+    @PostMapping("vip/edit/{plateNumber}")
+    public String editVipInfo(@PathVariable("plateNumber") String plateNumber,VipInfo vipInfo) {
+        try {
+            this.vipInfoService.updateVipInfoByPlateNumber(plateNumber,vipInfo);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "404";
+        }
+        return "redirect:/admin/vip/info";
+
+    }
 }
 
