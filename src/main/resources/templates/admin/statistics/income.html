@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!-- saved from url=(0052)http://getbootstrap.com/docs/4.0/examples/dashboard/ -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!--echarts-->
+    <script th:src="@{/asserts/js/echarts.js}"></script>
+
+    <title>首页</title>
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/asserts/css/bootstrap.min.css}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link th:href="@{/asserts/css/dashboard.css}" rel="stylesheet">
+</head>
+
+<body>
+<div th:replace="~{/common/commons::topbar}"></div>
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{common/commons::sidebar}"></div>
+        <main role="main" class="col-md-10 ml-sm-auto col-lg-10 pt-3 px-4">
+            <div class="form-group">
+                <form th:action="@{/statistics/income}" method="post">
+                    <div class="form-row">
+                        <div class="form-inline col-**" id="radios">
+                            <div class="form-inline">
+                                <input class="form-control" id="r1" type="radio" name="type" value="day"
+                                       onclick="onRadioChange(this.value)"/>
+                                <label for="r1">按日查询</label>
+                            </div>
+                            <div class="form-inline">
+                                <input class="form-inline" id="r2" type="radio" name="type" value="month"
+                                       onclick="onRadioChange(this.value)"/>
+                                <label for="r2">按月查询</label>
+                            </div>
+                        </div>
+                        <div class="form-inline col-**">
+                            <div class="form-inline">
+                                <label for="startTimeInput">起始时间:</label>
+                                <input class="form-control form-control-sm" id="startTimeInput" type="date"
+                                       name="startTime" placeholder="起始时间">
+                            </div>
+                            <div class="form-inline">
+                                <label for="endTimeInput">终止时间:</label>
+                                <input class="form-control form-control-sm" id="endTimeInput" type="date"
+                                       name="endTime" placeholder="终止时间">
+                            </div>
+                        </div>
+                        <div class="col-1">
+                            <button class="btn btn-primary btn-primary-sm" type="submit">查询收益</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div id="chart" style="width: 1600px;height:800px;"></div>
+
+        </main>
+    </div>
+
+    <script>
+        function onRadioChange(value) {
+            var startTimeInput = document.getElementById("startTimeInput");
+            var endTimeInput = document.getElementById("endTimeInput");
+            var type = document.getElementById("type");
+            value = type.value;
+            if (value === "day") {
+                startTimeInput.type = "date";
+                endTimeInput.type = "date";
+            } else if (value === "month") {
+                startTimeInput.type = "month";
+                endTimeInput.type = "month";
+            }
+        }
+    </script>
+</div>
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script type="text/javascript" th:src="@{/asserts/js/jquery-3.2.1.slim.min.js}"></script>
+<script type="text/javascript" th:src="@{/asserts/js/popper.min.js}"></script>
+<script type="text/javascript" th:src="@{/asserts/js/bootstrap.min.js}"></script>
+
+<!-- Icons -->
+<script type="text/javascript" th:src="@{/asserts/js/feather.min.js}"></script>
+<script>
+    feather.replace()
+</script>
+
+<!-- Graphs -->
+<script type="text/javascript" th:inline="javascript">
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('chart'));
+
+    /*<![CDATA[*/
+    var income = /*[[${incomeList}]]*/ [];
+    var xData = /*[[${xSeries}]]*/ [];
+    /*]]>*/
+    // 指定图表的配置项和数据
+    var option = {
+        title: {
+            text: '收益统计'
+        },
+        tooltip: {},
+        legend: {
+            data: ['收益']
+        },
+        xAxis: {
+            data: xData
+        },
+        yAxis: {},
+        series: [{
+            name: '收益',
+            type: 'line',
+            data: income
+        }]
+    };
+
+    // 使用刚指定的配置项和数据显示图表。
+    myChart.setOption(option);
+</script>
+
+</body>
+
+</html>
