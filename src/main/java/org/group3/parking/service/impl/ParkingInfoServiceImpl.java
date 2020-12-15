@@ -9,9 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.*;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -62,7 +61,7 @@ public class ParkingInfoServiceImpl implements ParkingInfoService {
     public void enterParkingLot(String plateNumber, LocalDateTime enterTime) throws HasEnteredException {
         //检查是否符合进入的信息条件,再插入数据项
         if (hasEntered(plateNumber))
-            throw new HasEnteredException("Car" + plateNumber + "has entered!");
+            throw new HasEnteredException("Car " + plateNumber + " has entered!");
         ParkingInfo parkingInfo = new ParkingInfo();
         parkingInfo.setPlateNumber(plateNumber);
         parkingInfo.setEnterTime(enterTime);
@@ -83,11 +82,6 @@ public class ParkingInfoServiceImpl implements ParkingInfoService {
             return parkingInfo.get();
         } else
             throw new Exception("Leave time must be later than enter time!");
-    }
-
-    @Override
-    public void payForLeave(String plateNumber, BigDecimal amount) throws Exception {
-        //检查金额是否正确
     }
 
 
@@ -180,11 +174,20 @@ public class ParkingInfoServiceImpl implements ParkingInfoService {
         return parkingInfo.isPresent();
     }
 
-    private BigDecimal calculateAmount(ParkingInfo parkingInfo) {
+    /**
+     * @param parkingInfo 输入具有进入时间，离开时间的ParkingInfo类型
+     * @return 返回这次停车的应缴金额
+     */
+    @Override
+    public BigDecimal calculateAmount(ParkingInfo parkingInfo) throws Exception {
         //计算金额
+        if (parkingInfo == null || parkingInfo.getEnterTime() == null || parkingInfo.getLeaveTime() == null)
+            throw new Exception("无效的参数：空指针");
         //进入、离开时间
         LocalDateTime enterTime = parkingInfo.getEnterTime();
         LocalDateTime leaveTime = parkingInfo.getLeaveTime();
+        if (leaveTime.isBefore(enterTime))
+            throw new Exception("离开时间不能早于进入时间!");
         //获取基础价格
         BigDecimal amount = configService.getParkingLotConfig().getBasePrice();
         //获取日间、夜间价格
@@ -203,21 +206,36 @@ public class ParkingInfoServiceImpl implements ParkingInfoService {
             hours = hours.add(BigDecimal.ONE);
 
         //计算整天部分的金额
-        amount = amount.add(days.multiply(dayTimePrice.add(nightTimePrice)));
+        amount = amount.add(days.multiply(dayTimePrice.add(nightTimePrice).multiply(BigDecimal.valueOf(12))));
 
         //计算不足一天部分的金额
-        for (var i = enterTime.getHour(); i <= enterTime.getHour() + duration.toHoursPart(); i++) {
-            if ((i >= 9 && i <= 21) || (i >= 9 + 24 && i <= 21 + 24)) {
+        int day = 0;
+        int night = 0;
+        for (var i = enterTime.getHour(); i < enterTime.getHour() + hours.intValue(); i++) {
+            if ((i >= 9 && i < 21) || (i >= 9 + 24 && i < 21 + 24)) {
                 amount = amount.add(dayTimePrice);
+                day++;
             } else {
                 amount = amount.add(nightTimePrice);
+                night++;
             }
         }
 
         if (vipInfoService.isVip(parkingInfo.getPlateNumber())) {
             amount = amount.multiply(configService.getParkingLotConfig().getDiscount());
         }
+        amount = amount.setScale(2, RoundingMode.HALF_UP);
         return amount;
+    }
+
+    /**
+     * 获取当前停车场内车辆
+     *
+     * @return 当前停车场内车辆数
+     */
+    @Override
+    public Integer getCurrentNumber() {
+        return parkingInfoRepository.countAllByLeaveTimeIsNull();
     }
 
 }

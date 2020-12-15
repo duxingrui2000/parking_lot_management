@@ -7,7 +7,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <!--echarts-->
-    <script th:src="@{/asserts/js/echarts.js}"></script>
+    <script th:src="@{/asserts/js/echarts.common.min.js}"></script>
 
     <title>首页</title>
     <!-- Bootstrap core CSS -->
@@ -18,7 +18,7 @@
 </head>
 
 <body>
-<div th:replace="~{/common/commons::topbar}"></div>
+<div th:replace="~{common/commons::topbar}"></div>
 <div class="container-fluid">
     <div class="row">
         <div th:replace="~{common/commons::sidebar}"></div>
@@ -42,12 +42,12 @@
                             <div class="form-inline">
                                 <label for="startTimeInput">起始时间:</label>
                                 <input class="form-control form-control-sm" id="startTimeInput" type="date"
-                                       name="startTime" placeholder="起始时间">
+                                       name="startTime" placeholder="起始时间" required>
                             </div>
                             <div class="form-inline">
                                 <label for="endTimeInput">终止时间:</label>
                                 <input class="form-control form-control-sm" id="endTimeInput" type="date"
-                                       name="endTime" placeholder="终止时间">
+                                       name="endTime" placeholder="终止时间" required>
                             </div>
                         </div>
                         <div class="col-1">
@@ -56,24 +56,15 @@
                     </div>
                 </form>
             </div>
-            <div id="chart" style="width: 1600px;height:800px;"></div>
+            <div class="w-100">
+                <div id="chart" style="width:100%;height:800px"></div>
+            </div>
+
 
         </main>
     </div>
 
-    <script>
-        function onRadioChange(value) {
-            var startTimeInput = document.getElementById("startTimeInput");
-            var endTimeInput = document.getElementById("endTimeInput");
-            if (value === "day") {
-                startTimeInput.type = "date";
-                endTimeInput.type = "date";
-            } else if (value === "month") {
-                startTimeInput.type = "month";
-                endTimeInput.type = "month";
-            }
-        }
-    </script>
+
 </div>
 
 <!-- Bootstrap core JavaScript
@@ -87,6 +78,20 @@
 <script type="text/javascript" th:src="@{/asserts/js/feather.min.js}"></script>
 <script>
     feather.replace()
+</script>
+<!--onRadioChange-->
+<script>
+    function onRadioChange(value) {
+        var startTimeInput = document.getElementById("startTimeInput");
+        var endTimeInput = document.getElementById("endTimeInput");
+        if (value === "day") {
+            startTimeInput.type = "date";
+            endTimeInput.type = "date";
+        } else if (value === "month") {
+            startTimeInput.type = "month";
+            endTimeInput.type = "month";
+        }
+    }
 </script>
 
 <!-- Graphs -->
@@ -114,12 +119,17 @@
         series: [{
             name: '停车量',
             type: 'line',
-            data: income
+            data: income,
+            smooth: true
         }]
     };
 
     // 使用刚指定的配置项和数据显示图表。
     myChart.setOption(option);
+    window.addEventListener("resize", function () {
+        document.getElementById('chart').resize();
+
+    });
 </script>
 
 </body>
